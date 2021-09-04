@@ -1,5 +1,7 @@
 # GIST coding interview
 
+*Implementation conduct comaprision between CNN and RNN based model on text classification task, the effectiveness of pretraining embeding.*
+
 ## Installation
 Easily to running on Google Colab without install extra package
 
