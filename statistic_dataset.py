@@ -1,9 +1,6 @@
 import os
-import glob2
 import argparse
-
-from numpy.lib.function_base import average
-from data_config import CLASS2NAME
+from config import CLASS2NAME
 from nltk.tokenize import word_tokenize
 import numpy as np
 import json
@@ -23,7 +20,7 @@ def load_data_by_path(path):
             # Tokenize paragraph to list of words
             words = word_tokenize(reading_text) 
             # Remove punctuation
-            words = [word for word in words if word.isalpha()]
+            # words = [word for word in words if word.isalpha()]
 
             X.append(words)
             labels.append(class_id)
@@ -49,8 +46,8 @@ def statistic(data):
     print("\t+ The number of training examples: {}".format(N))
 
     # ratio of positive examples to negative examples
-    positives = np.where(label == CLASS2NAME['positive'])
-    negatives = np.where(label == CLASS2NAME['negative'])
+    positives = np.where(label == CLASS2NAME['positive'])[0]
+    negatives = np.where(label == CLASS2NAME['negative'])[0]
     ratio_pn = len(positives)/len(negatives)
     print("\t+ Ratio of positive examples to negative examples: {}".format(ratio_pn))
 
@@ -59,7 +56,7 @@ def statistic(data):
     print("\t+ The average length of document: {}".format(average_len))
 
     # maximum length of document
-    max_length = np.max(length_lst)
+    max_length = int(np.max(length_lst))
     print("\t+ The maximum length of document is {}".format(max_length))
 
     return {
@@ -84,9 +81,9 @@ def main(args):
     params = statistic(data)
     print(params)
 
-    # # Save params to disk
-    # with open('statistic_output.json', 'w') as f:
-    #     json.dump(params, f, indent=4)
+    # Save params to disk
+    with open('statistic_output.json', 'w') as f:
+        json.dump(params, f, indent=4)
 
 
 if __name__ == '__main__':

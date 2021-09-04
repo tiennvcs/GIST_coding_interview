@@ -1,8 +1,9 @@
 {
-    "number_unique": 21625,
+    "number_unique": 24288,
     "number_training_examples": 2000,
-    "n_positives": 1,
-    "n_negatives": 1,
+    "n_positives": 1000,
+    "n_negatives": 1000,
     "ratio_pn": 1.0,
-    "average_length": 161.3415,
-    "max_length": 
+    "average_length": 187.86,
+    "max_length": 3817
+}
