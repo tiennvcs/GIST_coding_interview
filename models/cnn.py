@@ -1,31 +1,29 @@
-from typing import Text
-from torch import nn
-from torch import functional as F
-
-class TextClassificationCNN(nn.Module):
-
-    def __init__(self, vocab_size=10000, embed_dim=100, num_filter=100, filter_length=3, num_class=2):
-        super(TextClassificationCNN, self).__init__()
-        self.embedding = nn.EmbeddingBag(vocab_size, embed_dim, sparse=True)
-        self.conv1 = nn.Conv1d(embed_dim, num_filter, filter_length)
-        self.fc = nn.Linear(embed_dim, num_class)
-        self.init_weights()
-
-    def init_weights(self):
-        initrange = 0.5
-        self.embedding.weight.data.uniform_(-initrange, initrange)
-        self.fc.weight.data.uniform_(-initrange, initrange)
-        self.fc.bias.data.zero_()
-
-    def forward(self, text, offsets):
-        x = self.embedding(text, offsets)
-        x = F.relu(self.conv1(x))
-        x = self.fc(x)
-        return x
+from tensorflow.keras import layers
+import tensorflow as tf
+from utils import create_embedding_matrix
 
 
+def TextClassificationCNN(num_words=10000, input_length=100, output_dim=100, use_pretrain_embedding=False, embedding_matrix=None):
+
+    inputs = tf.keras.Input(shape=(None,), dtype="int64")
+    if not use_pretrain_embedding:
+        x= tf.keras.layers.Embedding(input_dim=num_words, 
+                                    output_dim=output_dim, 
+                                    input_length=input_length)(inputs)
+    else:
+        x = layers.Embedding(input_dim=embedding_matrix.shape[0], 
+                            input_length=embedding_matrix.shape[1], 
+                            output_dim=embedding_matrix.shape[1])(inputs)
+    x = layers.Conv1D(100, 3, padding="valid", activation="relu", strides=2)(x)
+    x = layers.Dense(100)(x)
+    preds = layers.Dense(1, activation="sigmoid", name="predictions")(x)
+    model = tf.keras.Model(inputs, preds)
+    if use_pretrain_embedding:
+        model.layers[1].set_weights([embedding_matrix])
+        model.layers[1].trainable = False
+    return model
+    
 
 if __name__ == '__main__':
-
-    CNN_model = TextClassificationCNN(vocab_size=10000, embed_dim=100, num_class=2)
-    print(CNN_model)
+    model = TextClassificationCNN()
+    model.summary()

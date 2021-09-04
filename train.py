@@ -1,41 +1,96 @@
-from GIST_coding_interview.data_processing import processing
-from random import random
-
 import os
+import time
 import argparse
-import torch
-import torchvision
-import torchvision.transforms as transforms
-
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-
+from utils import plot_history
+from models.cnn import TextClassificationCNN
+from models.rnn import TextClassificationRNN
+from prepare_data import build_dataset
+import tensorflow as tf
+from keras.preprocessing.text import Tokenizer
 import matplotlib.pyplot as plt
-import numpy as np
-from utils import split_dataset
-from config import NAME2MODEL
-from data_processing import data_processing
+from utils import create_embedding_matrix
+from statistic_dataset import load_data_by_path
+from config import NAME2OPTIMIZER
 
 
-def train(X, y, model, test_size, epoch, batch_size, device):
-    pass
+def train(args):
     
+    if not os.path.exists(args['work_dir']):
+        os.mkdir(args['work_dir'])
 
 
-def main(args):
-    # Load dataset from disk
-    data = data_processing(input_dir=args['data_dir'], num_words=args['num_words'])
-    # Initialize model
+    # Build dataset
+    print("[info] Loading dataset from {}...".format(args['data_dir']))
+    train_ds, val_ds, test_ds = build_dataset(input_dir=args['data_dir'], 
+                                        split_ratio=args['test_size'],
+                                        batch_size=args['batch_size'],
+                                        num_words=args['num_words'],
+                                        num_dim=args['feature_dim'],
+    )
+    
+    embedding_matrix = None
+    use_pretrain_embedding = False
+    # Get the embedding matrix if provided
+    if args['pretrain_embedding']:
+        print("[info] Loading pretraining embedding ...")
+        use_pretrain_embedding = True
+        tk = tk = Tokenizer(num_words=args['num_words'], 
+                    filters='!"#$%&()*+,-./:;<=>?@[\]^_`{"}~\t\n', lower=True, split=" ") 
+        X, _ = load_data_by_path(path=os.path.join(args['data_dir'], 'train/'))
+        tk.fit_on_texts(X)
+        embedding_matrix = create_embedding_matrix(
+            path=args['pretrain_embedding'],
+            tk=tk,
+            num_feature=args['num_words'],
+            num_dim=args['feature_dim']
+        )
+
+    print("[info] Creating model {}...".format(args['model']))
+    # Create model
+    if args['model'] == 'CNN':
+        model = TextClassificationCNN(use_pretrain_embedding=use_pretrain_embedding,
+                                    embedding_matrix=embedding_matrix)
+    elif args['model'] == 'RNN':
+        model =  TextClassificationRNN(use_pretrain_embedding=use_pretrain_embedding,
+                                    embedding_matrix=embedding_matrix)
+    model.summary()
+    input()
+    model.compile(loss=tf.keras.losses.BinaryCrossentropy(), 
+                optimizer=NAME2OPTIMIZER[args['optimizer']](learning_rate=args['learning_rate']),
+                metrics=["accuracy"]
+    )   
 
 
+    # Define checkpoint to store log when training model
+    checkpoint_filepath = args['work_dir']
+    model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+        filepath=checkpoint_filepath,
+        save_weights_only=True,
+        monitor='val_accuracy',
+        save_freq=50,
+    )
 
+    # Training model
+    print("[info] Training in {} epochs with {} batch size...".format(args['epochs'], args['batch_size']))
+    start_time = time.time()
+    history = model.fit(train_ds, validation_data=val_ds, 
+                        epochs=args['epochs'], batch_size=args['batch_size'],
+                        callbacks=[model_checkpoint_callback])
+    print("--> Training time: {}".format(time.time() - start_time))
+
+    # Evaluate model
+    model.evaluate(test_ds)
+
+    # Saving the training accuracy 
+    plot_history(history=history, word_dir=args['work_dir'], 
+                model_name=args['model'], n_epochs=args['epochs'],
+    )    
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Training text classifier')
     
-    parser.add_argument('--data_dir', default='./data/train/',
+    parser.add_argument('--data_dir', default='./data',
         help='The training data directory path'
     )
 
@@ -46,25 +101,38 @@ if __name__ == '__main__':
         help='The pretrain embedding',
     )
 
+    parser.add_argument('--num_words', default=10000, type=int,
+        help='Maximum number of features',
+    )
+
+    parser.add_argument('--feature_dim', default=100, type=int,
+        help='Maximum number of features',
+    )
+
     parser.add_argument('--test_size', default=0.2, type=float,
         help="The test size for spliting dataset",
     )
 
-    parser.add_argument('--device', default='cuda:0',
-        help='The selected gpu device'
-    )
-
-    parser.add_argument('--epochs', default=100, type=int,
+    parser.add_argument('--epochs', default=10, type=int,
         help='The number of epochs in training progress'
     )
 
-    parser.add_argument('--batch_size', default=32, type=int,
+    parser.add_argument('--batch_size', default=64, type=int,
         help='The batch size using in training progress'
     )
 
-    parser.add_argument('--word_dir', default='./runs/train/cnn_train/',
+    parser.add_argument('--optimizer', default='sgd', choices=['sgd', 'adam', 'rmsprop'],
+        help='The optimization algorithm using in training'
+    )
+
+    parser.add_argument('--learning_rate', default=1.0e-3, type=float,
+        help='The learning rate of model'
+    )
+    
+    parser.add_argument('--work_dir', default='./runs/train/cnn_train/',
         help='The working directory to store model and training log'
     )
 
     args = vars(parser.parse_args())
-    main(args)
+    print(args)
+    train(args)

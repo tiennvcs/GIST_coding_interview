@@ -1,14 +1,8 @@
 import json
 import numpy as np
 from sklearn.model_selection import train_test_split
-
-
-def load_embedding_data(path):
-    with open(path, 'rb') as f:
-        data = json.load(f)
-    X = data['X'],
-    y = data['y']
-    return X, y 
+import os
+from matplotlib import pyplot as plt
 
 
 def count_word_frequency(X):
@@ -96,3 +90,48 @@ def split_dataset(X, y, ratio):
         X, y, test_size=ratio, random_state=2908,
     )
     return X_train, y_train, X_test, y_test
+
+
+def rename_dataset(subset):
+    all_files = os.listdir(os.path.join(subset, 'negative/'))
+    for name_file in tqdm(all_files):
+        src = os.path.join(subset, 'negative', name_file)
+        dst = os.path.join(subset, 'negative', name_file) + '.txt'
+        os.rename(src, dst)
+
+
+def plot_history(history, word_dir, model_name, n_epochs):
+
+    # Saving accuracy training progress
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
+    plt.title('{} accuracy'.format(model_name))
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='best')
+    saving_path = os.path.join(word_dir, 'accuracy_log.png')
+    plt.savefig(saving_path)
+    plt.clf()
+
+    # Saving loss accuracy in training progress
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('{} objective'.format(model_name))
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='best')
+    saving_path = os.path.join(word_dir, 'loss_log.png')
+    plt.savefig(saving_path)
+
+
+def create_embedding_matrix(path, tk, num_feature, num_dim):
+    pretrain_embedding = load_word_embedding(path=path)
+    embedding_matrix = np.zeros((num_feature, num_dim))
+    for w, i in tk.word_index.items():
+        if i < num_feature:
+            vect = pretrain_embedding.get(w)
+            if vect is not None:
+                embedding_matrix[i] = vect
+        else:
+            break
+    return embedding_matrix

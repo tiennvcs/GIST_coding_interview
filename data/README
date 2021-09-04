@@ -22,4 +22,4 @@ Pretrained word embedding:
 
 Training/Testing data:
 -------------
-On top level there are wo folders containing the training and testing split of texts. Inside each train/test split there are the splits between positive and negative reviews.
+On top level there are two folders containing the training and testing split of texts. Inside each train/test split there are the splits between positive and negative reviews.

@@ -1,39 +1,29 @@
-import torch
-import torch.nn as nn
-from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
-from torchtext.data import Field, TabularDataset, BucketIterator
+from tensorflow.keras import layers
+import tensorflow as tf
 
-class LSTM(nn.Module):
+
+def TextClassificationRNN(num_words=10000, input_length=100, output_dim=100,
+                         use_pretrain_embedding=False, embedding_matrix=None):
+
+    inputs = tf.keras.Input(shape=(None,), dtype="int64")
+    if not use_pretrain_embedding:
+        x= tf.keras.layers.Embedding(input_dim=num_words, 
+                                    output_dim=output_dim, 
+                                    input_length=input_length)(inputs)
+    else:
+        x = layers.Embedding(input_dim=embedding_matrix.shape[0], 
+                            input_length=embedding_matrix.shape[1], 
+                            output_dim=embedding_matrix.shape[1])(inputs)
+    x = tf.keras.layers.LSTM(100, activation='tanh')(x)
+    x = tf.keras.layers.Dense(100)(x)
+    preds = layers.Dense(1, activation="sigmoid", name="predictions")(x)
+    model = tf.keras.Model(inputs, preds)
+    if use_pretrain_embedding:
+        model.layers[1].set_weights([embedding_matrix])
+        model.layers[1].trainable = False
+    return model
     
-    def __init__(self, dimension=128):
-        super(LSTM, self).__init__()
 
-        self.embedding = nn.Embedding(len(text_field.vocab), 300)
-        self.dimension = dimension
-        self.lstm = nn.LSTM(input_size=300,
-                            hidden_size=dimension,
-                            num_layers=1,
-                            batch_first=True,
-                            bidirectional=True)
-        self.drop = nn.Dropout(p=0.5)
-
-        self.fc = nn.Linear(2*dimension, 1)
-
-    def forward(self, text, text_len):
-
-        text_emb = self.embedding(text)
-
-        packed_input = pack_padded_sequence(text_emb, text_len, batch_first=True, enforce_sorted=False)
-        packed_output, _ = self.lstm(packed_input)
-        output, _ = pad_packed_sequence(packed_output, batch_first=True)
-
-        out_forward = output[range(len(output)), text_len - 1, :self.dimension]
-        out_reverse = output[:, 0, self.dimension:]
-        out_reduced = torch.cat((out_forward, out_reverse), 1)
-        text_fea = self.drop(out_reduced)
-
-        text_fea = self.fc(text_fea)
-        text_fea = torch.squeeze(text_fea, 1)
-        text_out = torch.sigmoid(text_fea)
-
-        return text_out
+if __name__ == '__main__':
+    model = TextClassificationRNN()
+    model.summary()

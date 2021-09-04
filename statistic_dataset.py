@@ -82,7 +82,7 @@ def main(args):
     print(params)
 
     # Save params to disk
-    with open('statistic_output.json', 'w') as f:
+    with open('runs/statistic_output.json', 'w') as f:
         json.dump(params, f, indent=4)
 
 
