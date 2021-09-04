@@ -25,7 +25,7 @@ def load_data_by_path(path):
             X.append(words)
             labels.append(class_id)
     
-    return np.array(X), np.array(labels)
+    return np.array(X, dtype=object), np.array(labels, dtype=object)
 
 
 def statistic(data):

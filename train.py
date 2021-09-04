@@ -8,7 +8,7 @@ from prepare_data import build_dataset
 import tensorflow as tf
 from keras.preprocessing.text import Tokenizer
 import matplotlib.pyplot as plt
-from utils import create_embedding_matrix
+from utils import create_embedding_matrix, scheduler
 from statistic_dataset import load_data_by_path
 from config import NAME2OPTIMIZER
 
@@ -21,12 +21,11 @@ def train(args):
 
     # Build dataset
     print("[info] Loading dataset from {}...".format(args['data_dir']))
-    train_ds, val_ds, test_ds = build_dataset(input_dir=args['data_dir'], 
-                                        split_ratio=args['test_size'],
-                                        batch_size=args['batch_size'],
-                                        num_words=args['num_words'],
-                                        num_dim=args['feature_dim'],
-    )
+    train_ds, val_ds, test_ds, word_index = build_dataset(input_dir=args['data_dir'], 
+                                                        split_ratio=args['test_size'],
+                                                        batch_size=args['batch_size'],
+                                                        num_words=args['num_words'],
+                                                        num_dim=args['feature_dim'])
     
     embedding_matrix = None
     use_pretrain_embedding = False
@@ -34,13 +33,9 @@ def train(args):
     if args['pretrain_embedding']:
         print("[info] Loading pretraining embedding ...")
         use_pretrain_embedding = True
-        tk = tk = Tokenizer(num_words=args['num_words'], 
-                    filters='!"#$%&()*+,-./:;<=>?@[\]^_`{"}~\t\n', lower=True, split=" ") 
-        X, _ = load_data_by_path(path=os.path.join(args['data_dir'], 'train/'))
-        tk.fit_on_texts(X)
         embedding_matrix = create_embedding_matrix(
             path=args['pretrain_embedding'],
-            tk=tk,
+            word_index=word_index,
             num_feature=args['num_words'],
             num_dim=args['feature_dim']
         )
@@ -54,28 +49,29 @@ def train(args):
         model =  TextClassificationRNN(use_pretrain_embedding=use_pretrain_embedding,
                                     embedding_matrix=embedding_matrix)
     model.summary()
-    input()
+    # input("Press [Enter] to start TRAINING .... :)")
     model.compile(loss=tf.keras.losses.BinaryCrossentropy(), 
                 optimizer=NAME2OPTIMIZER[args['optimizer']](learning_rate=args['learning_rate']),
                 metrics=["accuracy"]
     )   
 
-
-    # Define checkpoint to store log when training model
+    # Define callbacks
     checkpoint_filepath = args['work_dir']
-    model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
-        filepath=checkpoint_filepath,
-        save_weights_only=True,
-        monitor='val_accuracy',
-        save_freq=50,
+    checkpoint = tf.keras.callbacks.ModelCheckpoint(
+                    filepath=checkpoint_filepath,
+                    save_weights_only=True,
+                    monitor='val_accuracy',
+                    save_best_only=True
     )
+    # early_stopping =tf.keras.callbacks.EarlyStopping(monitor='val_accuracy', patience=3)
+    scheduler_lr = tf.keras.callbacks.LearningRateScheduler(scheduler)
 
     # Training model
     print("[info] Training in {} epochs with {} batch size...".format(args['epochs'], args['batch_size']))
     start_time = time.time()
     history = model.fit(train_ds, validation_data=val_ds, 
                         epochs=args['epochs'], batch_size=args['batch_size'],
-                        callbacks=[model_checkpoint_callback])
+                        callbacks=[checkpoint, scheduler_lr])
     print("--> Training time: {}".format(time.time() - start_time))
 
     # Evaluate model

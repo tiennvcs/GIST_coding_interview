@@ -3,6 +3,9 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import os
 from matplotlib import pyplot as plt
+from statistic_dataset import load_data_by_path
+from keras.preprocessing.text import Tokenizer
+import tensorflow as tf
 
 
 def count_word_frequency(X):
@@ -124,14 +127,24 @@ def plot_history(history, word_dir, model_name, n_epochs):
     plt.savefig(saving_path)
 
 
-def create_embedding_matrix(path, tk, num_feature, num_dim):
+def create_embedding_matrix(path, word_index, num_feature, num_dim):
+    hits = 0
+    misses = 0
     pretrain_embedding = load_word_embedding(path=path)
     embedding_matrix = np.zeros((num_feature, num_dim))
-    for w, i in tk.word_index.items():
-        if i < num_feature:
-            vect = pretrain_embedding.get(w)
-            if vect is not None:
-                embedding_matrix[i] = vect
+    for word, i in word_index.items():
+        embedding_vector = pretrain_embedding.get(word)
+        if embedding_vector is not None:
+            embedding_matrix[i] = embedding_vector
+            hits += 1
         else:
-            break
+            misses += 1
+    print("Converted %d words (%d misses)" % (hits, misses))
     return embedding_matrix
+
+
+def scheduler(epoch, lr):
+    if epoch < 100:
+        return lr
+    else:
+        return lr * tf.math.exp(-0.1)

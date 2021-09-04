@@ -35,7 +35,7 @@ def build_dataset(input_dir, split_ratio, batch_size, num_words, num_dim):
         os.path.join(input_dir, 'test'), batch_size=batch_size
     )
 
-    def custom_standardization(input_data):
+    def mystandardize(input_data):
         lowercase = tf.strings.lower(input_data)
         stripped_html = tf.strings.regex_replace(lowercase, "<br />", " ")
         return tf.strings.regex_replace(
@@ -43,7 +43,7 @@ def build_dataset(input_dir, split_ratio, batch_size, num_words, num_dim):
         )
 
     vectorize_layer = TextVectorization(
-        standardize=custom_standardization,
+        standardize=mystandardize,
         max_tokens=num_words,
         output_mode="int",
         output_sequence_length=num_dim,
@@ -65,7 +65,10 @@ def build_dataset(input_dir, split_ratio, batch_size, num_words, num_dim):
     val_ds = val_ds.cache().prefetch(buffer_size=10)
     test_ds = test_ds.cache().prefetch(buffer_size=10)
 
-    return train_ds, val_ds, test_ds
+    voc = vectorize_layer.get_vocabulary()
+    word_index = dict(zip(voc, range(len(voc))))
+
+    return train_ds, val_ds, test_ds, word_index
 
 
 if __name__ == '__main__':
