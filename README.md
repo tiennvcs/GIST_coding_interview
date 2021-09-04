@@ -63,7 +63,9 @@ $python train.py --data_dir ./data --model RNN \
 Check at [here](https://docs.google.com/spreadsheets/d/1zMhq6dC8P9bYwVvvTH5BwUhH2-9rylmUHx7rHulbmpY/edit?usp=sharing)
 
 Some training plots
+![RNN_64_Adam_1e3_Adam_w_acc](./runs/train/RNN_64_Adam_1e3_Adam_w/accuracy_log.png)
 
+![RNN_64_Adam_1e3_Adam_w_loss](runs/train/RNN_64_Adam_1e3_Adam_w/loss_log.png)
 
 ---
 Contact information: tiennvcs@gmail.com
