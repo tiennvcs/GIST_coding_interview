@@ -62,4 +62,8 @@ $python train.py --data_dir ./data --model RNN \
 
 Check at [here](https://docs.google.com/spreadsheets/d/1zMhq6dC8P9bYwVvvTH5BwUhH2-9rylmUHx7rHulbmpY/edit?usp=sharing)
 
+Some training plots
+
+
+---
 Contact information: tiennvcs@gmail.com
