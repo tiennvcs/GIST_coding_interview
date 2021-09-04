@@ -5,7 +5,7 @@
 ## Installation
 Easily to running on Google Colab without install extra package
 
-```cmd
+```shell
 git clone https://github.com/tiennvcs/GIST_coding_interview/
 
 cd GIST_coding_interview/
@@ -16,12 +16,12 @@ cd GIST_coding_interview/
 ## Usages
 Run file `./statistic_data.py` to get the counting information of data. For example, if you want to statistic folder `./data/train/`, just run the following commands.
 
-```cmd
+```shell
 python statistic_data.py --input_dir ./data/train/
 ```
 
 Train model with different arguments
-```cmd
+```shell
 python train.py -h
 
 optional arguments:
@@ -47,7 +47,7 @@ optional arguments:
 ```
 
 For example, run the following command to train RNN model on `./data` with  10k num_words, 100 feature dim, learning rate 1e-3, 100 epochs, 64 batch sizes, Adam optimizer and store model in `runs/train/` 
-```cmd
+```shell
 python train.py --data_dir ./data --model RNN \
 --pretrain_embedding data/all.review.vec.txt \
 --num_words 10000 --feature_dim 100 \
