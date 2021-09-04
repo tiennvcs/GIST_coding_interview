@@ -75,6 +75,7 @@ def train(args):
     print("--> Training time: {}".format(time.time() - start_time))
 
     # Evaluate model
+    model.load_weights(checkpoint_filepath)
     model.evaluate(test_ds)
 
     # Saving the training accuracy 
