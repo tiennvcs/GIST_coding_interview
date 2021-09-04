@@ -63,7 +63,6 @@ def train(args):
                     monitor='val_accuracy',
                     save_best_only=True
     )
-    # early_stopping =tf.keras.callbacks.EarlyStopping(monitor='val_accuracy', patience=3)
     scheduler_lr = tf.keras.callbacks.LearningRateScheduler(scheduler)
 
     # Training model
