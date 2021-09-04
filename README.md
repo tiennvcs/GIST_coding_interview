@@ -6,9 +6,11 @@
 Easily to running on Google Colab without install extra package
 
 ```shell
-git clone https://github.com/tiennvcs/GIST_coding_interview/
+$ git clone https://github.com/tiennvcs/GIST_coding_interview/
 
-cd GIST_coding_interview/
+$ cd GIST_coding_interview/
+
+$ pip install -r requirements.txt
 ```
 
 [Colab notebook](https://colab.research.google.com/drive/1IgNh7-S3yUTl6Z06XKMwriDoGkIxFxF3?usp=sharing)
@@ -17,12 +19,12 @@ cd GIST_coding_interview/
 Run file `./statistic_data.py` to get the counting information of data. For example, if you want to statistic folder `./data/train/`, just run the following commands.
 
 ```shell
-python statistic_data.py --input_dir ./data/train/
+$ python statistic_data.py --input_dir ./data/train/
 ```
 
 Train model with different arguments
 ```shell
-python train.py -h
+$ python train.py -h
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -48,12 +50,12 @@ optional arguments:
 
 For example, run the following command to train RNN model on `./data` with  10k num_words, 100 feature dim, learning rate 1e-3, 100 epochs, 64 batch sizes, Adam optimizer and store model in `runs/train/` 
 ```shell
-python train.py --data_dir ./data --model RNN \
---pretrain_embedding data/all.review.vec.txt \
---num_words 10000 --feature_dim 100 \
---learning_rate 1e-3 --optimizer adam \
---epochs 100 --batch_size 64 
---work_dir ./runs/train/RNN_64_Adam_1e3_Adam_w/
+$python train.py --data_dir ./data --model RNN \
+    --pretrain_embedding data/all.review.vec.txt \
+    --num_words 10000 --feature_dim 100 \
+    --learning_rate 1e-3 --optimizer adam \
+    --epochs 100 --batch_size 64 
+    --work_dir ./runs/train/RNN_64_Adam_1e3_Adam_w/
 ```
 
 ## Experiment and results
