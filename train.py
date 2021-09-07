@@ -1,16 +1,10 @@
 import os
 import time
 import argparse
-from utils import plot_history
-from models.cnn import TextClassificationCNN
-from models.rnn import TextClassificationRNN
-from prepare_data import build_dataset
 import tensorflow as tf
-from keras.preprocessing.text import Tokenizer
-import matplotlib.pyplot as plt
-from utils import create_embedding_matrix, scheduler
-from statistic_dataset import load_data_by_path
+from prepare_data import build_dataset
 from config import NAME2OPTIMIZER, NAME2MODEL
+from utils import create_embedding_matrix, scheduler, plot_history
 
 
 def train(args):
