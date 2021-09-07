@@ -10,7 +10,7 @@ from keras.preprocessing.text import Tokenizer
 import matplotlib.pyplot as plt
 from utils import create_embedding_matrix, scheduler
 from statistic_dataset import load_data_by_path
-from config import NAME2OPTIMIZER
+from config import NAME2OPTIMIZER, NAME2MODEL
 
 
 def train(args):
@@ -42,11 +42,7 @@ def train(args):
 
     print("[info] Creating model {}...".format(args['model']))
     # Create model
-    if args['model'] == 'CNN':
-        model = TextClassificationCNN(use_pretrain_embedding=use_pretrain_embedding,
-                                    embedding_matrix=embedding_matrix)
-    elif args['model'] == 'RNN':
-        model =  TextClassificationRNN(use_pretrain_embedding=use_pretrain_embedding,
+    model = NAME2MODEL[args['model'].lower()](use_pretrain_embedding=use_pretrain_embedding,
                                     embedding_matrix=embedding_matrix)
     model.summary()
     # input("Press [Enter] to start TRAINING .... :)")
@@ -90,7 +86,7 @@ if __name__ == '__main__':
         help='The training data directory path'
     )
 
-    parser.add_argument('--model', default='CNN',
+    parser.add_argument('--model', default='CNN', choices=['cnn', 'rnn', 'CNN','RNN'],
         help='The using model'
     )
     parser.add_argument('--pretrain_embedding', default=None,
@@ -98,11 +94,11 @@ if __name__ == '__main__':
     )
 
     parser.add_argument('--num_words', default=10000, type=int,
-        help='Maximum number of features',
+        help='Maximum number of words',
     )
 
     parser.add_argument('--feature_dim', default=100, type=int,
-        help='Maximum number of features',
+        help='Maximum number of feature dim',
     )
 
     parser.add_argument('--test_size', default=0.2, type=float,

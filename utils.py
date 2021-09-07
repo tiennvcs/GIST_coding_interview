@@ -1,10 +1,11 @@
-import numpy as np
-from sklearn.model_selection import train_test_split
 import os
-from matplotlib import pyplot as plt
-from statistic_dataset import load_data_by_path
-from keras.preprocessing.text import Tokenizer
+import numpy as np
+from tqdm import tqdm
 import tensorflow as tf
+from matplotlib import pyplot as plt
+from sklearn.model_selection import train_test_split
+from nltk.tokenize import word_tokenize
+from config import CLASS2NAME
 
 
 def count_word_frequency(X):
@@ -63,6 +64,28 @@ def load_word_embedding(path):
     return word_embeddings
 
 
+def load_data_by_path(path):
+    X = []
+    labels = []
+    for subfoder in os.listdir(path):
+        class_id = CLASS2NAME[subfoder]
+        for file_path in os.listdir(os.path.join(path, subfoder)):
+            
+            # Read sample from file
+            with open(os.path.join(path, subfoder, file_path), 'r') as f:
+                reading_text = f.read()
+            
+            # Tokenize paragraph to list of words
+            words = word_tokenize(reading_text) 
+            # Remove punctuation
+            # words = [word for word in words if word.isalpha()]
+
+            X.append(words)
+            labels.append(class_id)
+    
+    return np.array(X, dtype=object), np.array(labels, dtype=object)
+
+
 def build_data(X, vocab, word_embeddings, dim):
     """
         Return data have shape: [len(X), len(vocab), len(word_embeddings[0])]
@@ -81,8 +104,7 @@ def build_data(X, vocab, word_embeddings, dim):
         data.append(np.array(feature_vectors, dtype=object))
     data = np.array(data)
     return data
-
-  
+ 
 
 def split_dataset(X, y, ratio):
     """
